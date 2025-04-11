@@ -1,7 +1,7 @@
 Flask
-imaplib2
-smtplib
-python-dotenv
+secure-smtplib
+imapclient
 google-generativeai
+python-dotenv
 pymongo
 langdetect
