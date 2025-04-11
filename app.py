@@ -1164,5 +1164,6 @@ def sentiment_color(sentiment):
 if __name__ == '__main__':
     templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     os.makedirs(templates_dir, exist_ok=True)
-    
-    app.run(debug=True)
+
+    port = int(5000)
+    app.run(host="0.0.0.0", port=port)
