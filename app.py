@@ -45,6 +45,8 @@ responses_collection = db.responses
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+polling_active = False
+
 def classify_email(body):
     prompt = f"""
     Classify the issue below into one of these categories:
@@ -699,63 +701,67 @@ def get_response_statistics():
         return {}
 
 def fetch_and_process_emails():
+    global polling_active
     while True:
-        try:
-            mail = imaplib.IMAP4_SSL("imap.gmail.com")
-            mail.login(EMAIL_USER, EMAIL_PASS)
-            mail.select("inbox")
+        if polling_active:  # Only fetch emails if polling is active
+            try:
+                mail = imaplib.IMAP4_SSL("imap.gmail.com")
+                mail.login(EMAIL_USER, EMAIL_PASS)
+                mail.select("inbox")
 
-            _, messages = mail.search(None, "UNSEEN")
-            email_ids = messages[0].split()
-            
-            print(f"Found {len(email_ids)} unread email(s)")
-            
-            processed_count = 0
-
-            for eid in email_ids:
-                _, msg_data = mail.fetch(eid, "(RFC822)")
-                msg = email.message_from_bytes(msg_data[0][1])
-
-                subject, encoding = decode_header(msg["Subject"])[0]
-                if isinstance(subject, bytes):
-                    subject = subject.decode(encoding or "utf-8")
-                sender = msg.get("From")
-
-                body = ""
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        if part.get_content_type() == "text/plain":
-                            body = part.get_payload(decode=True).decode(errors="ignore")
-                            break
-                else:
-                    body = msg.get_payload(decode=True).decode(errors="ignore")
-
-                category = classify_email(body)
+                _, messages = mail.search(None, "UNSEEN")
+                email_ids = messages[0].split()
                 
-                to_email = DEPARTMENTS.get(category)
-                if not to_email:
-                    print(f"Warning: No email configured for category '{category}'. Using general email.")
-                    to_email = os.getenv("GENERAL_EMAIL", EMAIL_USER)
+                print(f"Found {len(email_ids)} unread email(s)")
                 
-                print(f"Attempting to forward as '{category}' to {to_email}")
-                forward_result = forward_email(subject, body, to_email, sender)
-                
-                if forward_result:
-                    print(f"Successfully forwarded '{subject}' to {to_email} (Category: {category})")
-                else:
-                    print(f"Failed to forward '{subject}' to {to_email} (Category: {category})")
+                processed_count = 0
 
-                store_email(category, sender, subject, body, to_email)
+                for eid in email_ids:
+                    _, msg_data = mail.fetch(eid, "(RFC822)")
+                    msg = email.message_from_bytes(msg_data[0][1])
 
-                mail.store(eid, '+FLAGS', '\\Seen')
+                    subject, encoding = decode_header(msg["Subject"])[0]
+                    if isinstance(subject, bytes):
+                        subject = subject.decode(encoding or "utf-8")
+                    sender = msg.get("From")
+
+                    body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain":
+                                body = part.get_payload(decode=True).decode(errors="ignore")
+                                break
+                    else:
+                        body = msg.get_payload(decode=True).decode(errors="ignore")
+
+                    category = classify_email(body)
+                    
+                    to_email = DEPARTMENTS.get(category)
+                    if not to_email:
+                        print(f"Warning: No email configured for category '{category}'. Using general email.")
+                        to_email = os.getenv("GENERAL_EMAIL", EMAIL_USER)
+                    
+                    print(f"Attempting to forward as '{category}' to {to_email}")
+                    forward_result = forward_email(subject, body, to_email, sender)
+                    
+                    if forward_result:
+                        print(f"Successfully forwarded '{subject}' to {to_email} (Category: {category})")
+                    else:
+                        print(f"Failed to forward '{subject}' to {to_email} (Category: {category})")
+
+                    store_email(category, sender, subject, body, to_email)
+
+                    mail.store(eid, '+FLAGS', '\\Seen')
+                    
+                    processed_count += 1
+                    
+                print(f"Successfully processed {processed_count}/{len(email_ids)} unread email(s)")
                 
-                processed_count += 1
-                
-            print(f"Successfully processed {processed_count}/{len(email_ids)} unread email(s)")
-            
-            mail.logout()
-        except Exception as e:
-            print("Polling Error:", e)
+                mail.logout()
+            except Exception as e:
+                print("Polling Error:", e)
+        else:
+            print("Email polling is paused")
 
         time.sleep(30)
 
@@ -817,7 +823,7 @@ def get_email_details(email_id):
 @app.route('/')
 def dashboard():
     email_log = get_emails_by_category()
-    return render_template('dashboard.html', email_log=email_log)
+    return render_template('dashboard.html', email_log=email_log, polling_active=polling_active)
 
 @app.route('/analytics')
 def analytics():
@@ -838,61 +844,6 @@ def view_email(email_id):
     except Exception as e:
         print(f"Error viewing email: {str(e)}")
         return f"Error loading email details: {str(e)}", 500
-
-# @app.route('/customer-history/<customer_id>')
-# def customer_history(customer_id):
-#     try:
-#         from bson.objectid import ObjectId
-#         customer_emails = list(emails_collection.find({"customer_id": customer_id}).sort("timestamp", -1))
-        
-#         # Process emails to ensure ObjectIds are converted to strings
-#         processed_emails = []
-#         for email in customer_emails:
-#             email_copy = dict(email)
-#             email_copy['_id'] = str(email_copy['_id'])  # Convert ObjectId to string
-#             processed_emails.append(email_copy)
-        
-#         # Calculate customer metrics
-#         total_emails = len(processed_emails)
-#         sentiment_counts = {"Positive": 0, "Neutral": 0, "Negative": 0, "Very Negative": 0}
-#         resolved_count = 0
-#         response_times = []
-        
-#         for email in processed_emails:
-#             sentiment = email.get('sentiment', 'Neutral')
-#             sentiment_counts[sentiment] = sentiment_counts.get(sentiment, 0) + 1
-            
-#             if email.get('status') == 'resolved':
-#                 resolved_count += 1
-#                 if email.get('response_time') and email.get('timestamp'):
-#                     response_duration = email.get('response_time') - email.get('timestamp')
-#                     response_times.append(response_duration.total_seconds() / 3600)
-        
-#         avg_response_time = sum(response_times) / len(response_times) if response_times else 0
-        
-#         # Calculate sentiment score (0-100)
-#         sentiment_score = (
-#             (sentiment_counts.get("Positive", 0) * 100) + 
-#             (sentiment_counts.get("Neutral", 0) * 50) + 
-#             (sentiment_counts.get("Negative", 0) * 25) + 
-#             (sentiment_counts.get("Very Negative", 0) * 0)
-#         ) / total_emails if total_emails > 0 else 50
-        
-#         customer_metrics = {
-#             "total_emails": total_emails,
-#             "resolved_emails": resolved_count,
-#             "avg_response_time": avg_response_time,
-#             "sentiment_score": sentiment_score,
-#             "sentiment_counts": sentiment_counts
-#         }
-        
-#         return render_template('customer_history.html', 
-#                               emails=processed_emails, 
-#                               customer_id=customer_id,
-#                               metrics=customer_metrics)
-#     except Exception as e:
-#         print(f"Error retrieving customer history: {str(e)}")
-#         return f"Error retrieving customer history: {str(e)}", 500
 
 @app.route('/api/weekly-report')
 def api_weekly_report():
@@ -1107,6 +1058,17 @@ def generate_ai_response():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+@app.route('/toggle-polling', methods=['POST'])
+def toggle_polling():
+    try:
+        global polling_active
+        data = request.json
+        polling_active = data.get('active', False)
+        print(f"Email polling set to: {polling_active}")
+        return jsonify({"success": True, "active": polling_active})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 @app.template_filter('format_datetime')
 def format_datetime(value, format='%Y-%m-%d %H:%M'):
     """Format a datetime object to string."""
@@ -1164,6 +1126,5 @@ def sentiment_color(sentiment):
 if __name__ == '__main__':
     templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     os.makedirs(templates_dir, exist_ok=True)
-
-    port = int(5000)
-    app.run(host="0.0.0.0", port=port)
+    
+    app.run(debug=True,port=5000)
