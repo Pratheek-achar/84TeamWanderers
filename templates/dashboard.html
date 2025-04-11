@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Modern Navigation Bar -->
+    <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <a class="flex items-center" href="/">
+                        <i class="bi bi-envelope-check text-2xl text-primary-400 mr-2"></i>
+                        <span class="font-bold text-white text-lg">ViewZen Email Management</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-2">
+                        <a class="px-4 py-2 rounded-md bg-primary-600 text-white font-medium" href="/">
+                            <i class="bi bi-speedometer2 mr-2"></i> Dashboard
+                        </a>
+                        <a class="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-800 font-medium transition" href="/analytics">
+                            <i class="bi bi-graph-up mr-2"></i> Analytics
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="relative">
+                        <button class="flex items-center text-gray-300 hover:text-white focus:outline-none" id="userMenuButton">
+                            <img class="rounded-full h-8 w-8 mr-2" src="https://ui-avatars.com/api/?name=Admin+User&background=6D28D9&color=fff" alt="User">
+                            <span class="hidden md:inline-block font-medium">Admin User</span>
+                            <i class="bi bi-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10" id="userMenu">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="bi bi-person mr-2"></i> Profile
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="bi bi-gear mr-2"></i> Settings
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <i class="bi bi-box-arrow-right mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left Sidebar -->
+            <div class="lg:col-span-1">
+                <!-- Category Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3">
+                        <h5 class="text-white font-semibold flex items-center">
+                            <i class="bi bi-pie-chart mr-2"></i> Category Distribution
+                        </h5>
+                    </div>
+                    <div class="p-4">
+                        <canvas id="categoryChart" height="220"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3">
+                        <h5 class="text-white font-semibold flex items-center">
+                            <i class="bi bi-clock-history mr-2"></i> Recent Activity
+                        </h5>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <div class="p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                        <i class="bi bi-envelope text-primary-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-gray-600">New email received</p>
+                                    <p class="text-xs text-gray-500">5 minutes ago</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                        <i class="bi bi-check2 text-green-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-gray-600">Email resolved</p>
+                                    <p class="text-xs text-gray-500">20 minutes ago</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <i class="bi bi-person text-blue-600"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-gray-600">User profile updated</p>
+                                    <p class="text-xs text-gray-500">1 hour ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:col-span-3">
+                <!-- Modern Tab Navigation -->
+                <div class="border-b border-gray-200 mb-5">
+                    <div class="flex overflow-x-auto">
+                        {% for category in email_log %}
+                        <button class="px-4 py-2 text-sm font-medium focus:outline-none whitespace-nowrap
+                                {% if loop.first %}
+                                    text-primary-600 border-b-2 border-primary-500
+                                {% else %}
+                                    text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent
+                                {% endif %}"
+                                id="{{ category|lower|replace(' ', '-') }}-tab"
+                                onclick="showTab('{{ category|lower|replace(' ', '-') }}')">
+                            {{ category }}
+                            <span class="ml-1 px-2 py-0.5 
+                                  {% if category == 'Complaint' %}
+                                      bg-red-100 text-red-700
+                                  {% else %}
+                                      bg-gray-100 text-gray-700
+                                  {% endif %} 
+                                  rounded-full text-xs">
+                                {{ email_log[category]|length }}
+                            </span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Tab Content Area -->
+                {% for category, emails in email_log.items() %}
+                <div id="{{ category|lower|replace(' ', '-') }}" class="tab-content {% if not loop.first %}hidden{% endif %}">
+                    <!-- Search & Filter -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2 md:mb-0">{{ category }} Emails</h3>
+                        
+                        <div class="flex space-x-2 w-full md:w-auto">
+                            <div class="relative flex-grow md:flex-grow-0">
+                                <input type="text" class="pl-9 pr-3 py-2 w-full border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none" placeholder="Search...">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class="bi bi-search text-gray-400"></i>
+                                </div>
+                            </div>
+                            <div class="relative inline-block text-left">
+                                <button type="button" class="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 shadow-sm focus:outline-none" id="filterButton">
+                                    <i class="bi bi-funnel mr-1"></i> Filter
+                                    <i class="bi bi-chevron-down ml-1 text-xs"></i>
+                                </button>
+                                <div class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10" id="filterMenu">
+                                    <div class="py-1">
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">All</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pending</a>
+                                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Resolved</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Email List -->
+                    <div class="space-y-3">
+                        {% for email in emails %}
+                        <a href="/view-email/{{ email._id }}" class="block bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                            <div class="flex justify-between items-start">
+                                <h5 class="font-medium text-gray-800">{{ email.subject }}</h5>
+                                <span class="text-sm text-gray-500">{{ email.timestamp|time_ago }}</span>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <p class="text-gray-600 text-sm line-clamp-1 max-w-2xl">
+                                    {% if email.summary %}{{ email.summary }}{% else %}{{ email.body }}{% endif %}
+                                </p>
+                                <div class="flex space-x-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                          style="background-color: {{ email.priority|priority_color }}; color: white;">
+                                        P{{ email.priority }}
+                                    </span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                          {% if email.status == 'resolved' %}
+                                              bg-green-100 text-green-800
+                                          {% elif email.status == 'pending' %}
+                                              bg-yellow-100 text-yellow-800
+                                          {% elif email.status == 'in-progress' %}
+                                              bg-blue-100 text-blue-800
+                                          {% else %}
+                                              bg-gray-100 text-gray-800
+                                          {% endif %}">
+                                        {{ email.status }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex flex-wrap items-center text-sm">
+                                <span class="text-gray-500 mr-3 mb-1">
+                                    <i class="bi bi-person-circle mr-1"></i> {{ email.from }}
+                                </span>
+                                {% if email.customer_id %}
+                                <a href="/customer-history/{{ email.customer_id }}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1 mr-2 hover:bg-blue-200">
+                                    Customer ID: {{ email.customer_id }}
+                                </a>
+                                {% endif %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 mb-1">
+                                    {{ email.category }}
+                                </span>
+                            </div>
+                        </a>
+                        {% else %}
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                            <div class="flex">
+                                <i class="bi bi-info-circle text-blue-500 flex-shrink-0 mr-3 text-lg"></i>
+                                <p class="text-blue-700">No emails found in this category.</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle user dropdown menu
+        document.getElementById('userMenuButton').addEventListener('click', function() {
+            document.getElementById('userMenu').classList.toggle('hidden');
+        });
+        
+        // Close the user menu when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('userMenuButton').contains(e.target)) {
+                document.getElementById('userMenu').classList.add('hidden');
+            }
+        });
+        
+        // Toggle filter dropdown
+        document.getElementById('filterButton').addEventListener('click', function() {
+            document.getElementById('filterMenu').classList.toggle('hidden');
+        });
+        
+        // Close the filter menu when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!document.getElementById('filterButton').contains(e.target)) {
+                document.getElementById('filterMenu').classList.add('hidden');
+            }
+        });
+        
+        // Tab functionality
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Show the selected tab
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Update active tab styling
+            document.querySelectorAll('[id$="-tab"]').forEach(button => {
+                button.classList.remove('text-primary-600', 'border-primary-500');
+                button.classList.add('text-gray-500', 'border-transparent');
+            });
+            
+            document.getElementById(tabId + '-tab').classList.remove('text-gray-500', 'border-transparent');
+            document.getElementById(tabId + '-tab').classList.add('text-primary-600', 'border-primary-500');
+        }
+
+        // Category distribution chart
+        const categoryData = {
+            labels: [
+                {% for category in email_log %}
+                '{{ category }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for category in email_log %}
+                    {{ email_log[category]|length }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#8B5CF6',  // Primary (Indigo) - Technical
+                    '#F87171',  // Red - Billing
+                    '#FCD34D',  // Yellow - Complaint
+                    '#6EE7B7',  // Green - General Inquiry
+                    '#9CA3AF',  // Grey - Unclassified
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            new Chart(ctxCategory, {
+                type: 'doughnut',
+                data: categoryData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

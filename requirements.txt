@@ -1,0 +1,8 @@
+Flask
+imaplib2
+email
+smtplib
+python-dotenv
+google-generativeai
+pymongo
+langdetect

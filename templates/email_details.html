@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Details - ViewZen Email Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Modern Navigation Bar -->
+    <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <a class="flex items-center" href="/">
+                        <i class="bi bi-envelope-check text-2xl text-primary-400 mr-2"></i>
+                        <span class="font-bold text-white text-lg">ViewZen Email Management</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-2">
+                        <a class="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-800 font-medium transition" href="/">
+                            <i class="bi bi-speedometer2 mr-2"></i> Dashboard
+                        </a>
+                        <a class="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-800 font-medium transition" href="/analytics">
+                            <i class="bi bi-graph-up mr-2"></i> Analytics
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="relative">
+                        <button class="flex items-center text-gray-300 hover:text-white focus:outline-none" id="userMenuButton">
+                            <img class="rounded-full h-8 w-8 mr-2" src="https://ui-avatars.com/api/?name=Admin+User&background=6D28D9&color=fff" alt="User">
+                            <span class="hidden md:inline-block font-medium">Admin User</span>
+                            <i class="bi bi-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10" id="userMenu">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="bi bi-person mr-2"></i> Profile
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="bi bi-gear mr-2"></i> Settings
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <i class="bi bi-box-arrow-right mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="mb-4">
+            <a href="/" class="flex items-center text-primary-600 hover:text-primary-700 transition-colors">
+                <i class="bi bi-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-200">
+            <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <h5 class="text-white font-semibold flex items-center">
+                        <i class="bi bi-envelope-open mr-2"></i> Email Details
+                    </h5>
+                    <div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                              {% if email.status == 'resolved' %}
+                                  bg-green-100 text-green-800
+                              {% elif email.status == 'pending' %}
+                                  bg-yellow-100 text-yellow-800
+                              {% elif email.status == 'in-progress' %}
+                                  bg-blue-100 text-blue-800
+                              {% else %}
+                                  bg-gray-100 text-gray-800
+                              {% endif %}">
+                            {{ email.status|capitalize }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <h4 class="text-xl font-bold text-gray-800">{{ email.subject }}</h4>
+                <div class="flex flex-wrap items-center mb-3">
+                    <div class="mr-4 mb-2">
+                        <span class="text-gray-600">From:</span> 
+                        <span class="font-medium">{{ email.sender }}</span>
+                    </div>
+                    
+                    {% if email.customer_id %}
+                    <div class="mr-4 mb-2">
+                        <a href="/customer-history/{{ email.customer_id }}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200">
+                            <i class="bi bi-person-badge mr-1"></i> Customer ID: {{ email.customer_id }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mr-4 mb-2">
+                        <span class="text-gray-600">Received:</span> 
+                        <span class="font-medium">{{ email.timestamp }}</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 mb-1 mr-2">
+                        {{ email.category }}
+                    </span>
+                    
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mb-1 mr-2" 
+                          style="background-color: {{ email.priority|priority_color }}; color: white;">
+                        Priority {{ email.priority }}
+                    </span>
+                    
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mb-1 mr-2"
+                          style="background-color: {{ email.sentiment|sentiment_color }}; color: white;">
+                        {{ email.sentiment }}
+                    </span>
+                    
+                </div>
+                
+                {% if email.forwarded_to %}
+                <div class="mb-3">
+                    <span class="text-gray-500">
+                        <i class="bi bi-forward"></i> Forwarded to: {{ email.forwarded_to }}
+                    </span>
+                </div>
+                {% endif %}
+                
+                <!-- Message Content -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-gray-100 to-gray-50 px-4 py-3">
+                        <h5 class="font-semibold text-gray-700">Message Content</h5>
+                    </div>
+                    <div class="p-4">
+                        {% if email.summary and email.summary != email.body %}
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 my-3 italic text-gray-700">
+                            <strong>Summary:</strong> {{ email.summary }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="whitespace-pre-line border-l-4 border-primary-500 pl-4 my-4 text-gray-700">
+                            {{ email.body }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Responses -->
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-gray-100 to-gray-50 px-4 py-3">
+                        <h5 class="font-semibold text-gray-700">Responses</h5>
+                    </div>
+                    <div class="p-4">
+                        {% if email.responses %}
+                            {% for response in email.responses %}
+                                <div class="p-4 my-3 rounded-lg {% if response.is_auto %}bg-amber-50 border-l-4 border-amber-500{% else %}bg-green-50 border-l-4 border-green-500{% endif %} mb-3">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                              {% if response.is_auto %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ 'Auto-generated' if response.is_auto else 'Manual' }} Response
+                                        </span>
+                                        <span class="text-sm text-gray-500">{{ response.timestamp }}</span>
+                                    </div>
+                                    <div>{{ response.response_text }}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                                <div class="flex">
+                                    <i class="bi bi-info-circle text-blue-500 flex-shrink-0 mr-3 text-lg"></i>
+                                    <p class="text-blue-700">No responses have been sent yet.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md flex items-center justify-center transition duration-200" id="respondBtn">
+                        <i class="bi bi-reply mr-2"></i> Respond
+                    </button>
+                    <button class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center justify-center transition duration-200" id="statusBtn">
+                        <i class="bi bi-clipboard-check mr-2"></i> Change Status
+                    </button>
+                    <button class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md flex items-center justify-center transition duration-200" id="categoryBtn">
+                        <i class="bi bi-tag mr-2"></i> Recategorize
+                    </button>
+                </div>
+                
+                <button class="border border-primary-600 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-md w-full flex items-center justify-center transition duration-200" id="aiAssistButton">
+                    <i class="bi bi-robot mr-2"></i> Generate AI Response
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Respond Modal -->
+    <div class="fixed inset-0 z-10 hidden overflow-y-auto" id="responseModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-30" id="responseModalOverlay"></div>
+            <div class="relative bg-white rounded-xl shadow-lg max-w-2xl w-full mx-auto">
+                <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3 rounded-t-xl">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-white font-semibold">Respond to Email</h5>
+                        <button class="text-white hover:text-gray-200" id="closeResponseModal">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form id="responseForm">
+                        <input type="hidden" id="responseEmailId" value="{{ email.id }}">
+                        <div class="mb-3">
+                            <label for="responseText" class="block text-sm font-medium text-gray-700 mb-1">Your Response</label>
+                            <textarea class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" id="responseText" rows="8" required></textarea>
+                        </div>
+                        <div class="flex items-center mb-3">
+                            <input class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded" type="checkbox" id="sendCopy" checked>
+                            <label class="ml-2 block text-sm text-gray-700" for="sendCopy">
+                                Send a copy to the customer ({{ email.sender }})
+                            </label>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition duration-200" id="cancelResponse">Cancel</button>
+                            <button type="button" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md transition duration-200" id="submitResponse">Send Response</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Modal -->
+    <div class="fixed inset-0 z-10 hidden overflow-y-auto" id="statusModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-30" id="statusModalOverlay"></div>
+            <div class="relative bg-white rounded-xl shadow-lg max-w-md w-full mx-auto">
+                <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3 rounded-t-xl">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-white font-semibold">Change Email Status</h5>
+                        <button class="text-white hover:text-gray-200" id="closeStatusModal">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form id="statusForm">
+                        <input type="hidden" id="statusEmailId" value="{{ email.id }}">
+                        <div class="mb-3">
+                            <label for="newStatus" class="block text-sm font-medium text-gray-700 mb-1">Select New Status</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" id="newStatus" required>
+                                <option value="pending" {% if email.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="in-progress" {% if email.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                                <option value="resolved" {% if email.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                <option value="closed" {% if email.status == 'closed' %}selected{% endif %}>Closed</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition duration-200" id="cancelStatus">Cancel</button>
+                            <button type="button" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md transition duration-200" id="submitStatus">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Modal -->
+    <div class="fixed inset-0 z-10 hidden overflow-y-auto" id="categoryModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-30" id="categoryModalOverlay"></div>
+            <div class="relative bg-white rounded-xl shadow-lg max-w-md w-full mx-auto">
+                <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3 rounded-t-xl">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-white font-semibold">Reassign Email Category</h5>
+                        <button class="text-white hover:text-gray-200" id="closeCategoryModal">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form id="categoryForm">
+                        <input type="hidden" id="categoryEmailId" value="{{ email.id }}">
+                        <div class="mb-3">
+                            <label for="newCategory" class="block text-sm font-medium text-gray-700 mb-1">Select New Category</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" id="newCategory" required>
+                                <option value="Technical" {% if email.category == 'Technical' %}selected{% endif %}>Technical</option>
+                                <option value="Billing" {% if email.category == 'Billing' %}selected{% endif %}>Billing</option>
+                                <option value="Complaint" {% if email.category == 'Complaint' %}selected{% endif %}>Complaint</option>
+                                <option value="General Inquiry" {% if email.category == 'General Inquiry' %}selected{% endif %}>General Inquiry</option>
+                                <option value="Unclassified" {% if email.category == 'Unclassified' %}selected{% endif %}>Unclassified</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" class="border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition duration-200" id="cancelCategory">Cancel</button>
+                            <button type="button" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md transition duration-200" id="submitCategory">Update Category</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Response Modal -->
+    <div class="fixed inset-0 z-10 hidden overflow-y-auto" id="aiResponseModal">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-30" id="aiResponseModalOverlay"></div>
+            <div class="relative bg-white rounded-xl shadow-lg max-w-2xl w-full mx-auto">
+                <div class="bg-gradient-to-r from-primary-600 to-purple-600 px-4 py-3 rounded-t-xl">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-white font-semibold">AI-Generated Response</h5>
+                        <button class="text-white hover:text-gray-200" id="closeAiResponseModal">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="mb-3">
+                        <div class="flex justify-between mb-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">AI Suggestion</span>
+                            <button class="text-primary-600 hover:text-primary-700 text-sm font-medium" id="copyAiResponse">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                        <div class="border border-gray-200 p-4 rounded-lg bg-gray-50" id="aiResponsePreview">
+                            <div class="flex justify-center">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                            </div>
+                            <p class="text-center mt-2 text-gray-600">Generating response...</p>
+                        </div>
+                    </div>
+                    <button class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md w-full transition duration-200" id="useAiResponse">
+                        <i class="bi bi-check-lg mr-2"></i> Use This Response
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User menu dropdown
+            document.getElementById('userMenuButton').addEventListener('click', function() {
+                document.getElementById('userMenu').classList.toggle('hidden');
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (!document.getElementById('userMenuButton').contains(e.target)) {
+                    document.getElementById('userMenu').classList.add('hidden');
+                }
+            });
+            
+            // Modal controls
+            function showModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+            
+            function hideModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            
+            // Response Modal
+            document.getElementById('respondBtn').addEventListener('click', function() {
+                showModal('responseModal');
+            });
+            
+            document.getElementById('closeResponseModal').addEventListener('click', function() {
+                hideModal('responseModal');
+            });
+            
+            document.getElementById('cancelResponse').addEventListener('click', function() {
+                hideModal('responseModal');
+            });
+            
+            document.getElementById('responseModalOverlay').addEventListener('click', function() {
+                hideModal('responseModal');
+            });
+            
+            // Status Modal
+            document.getElementById('statusBtn').addEventListener('click', function() {
+                showModal('statusModal');
+            });
+            
+            document.getElementById('closeStatusModal').addEventListener('click', function() {
+                hideModal('statusModal');
+            });
+            
+            document.getElementById('cancelStatus').addEventListener('click', function() {
+                hideModal('statusModal');
+            });
+            
+            document.getElementById('statusModalOverlay').addEventListener('click', function() {
+                hideModal('statusModal');
+            });
+            
+            // Category Modal
+            document.getElementById('categoryBtn').addEventListener('click', function() {
+                showModal('categoryModal');
+            });
+            
+            document.getElementById('closeCategoryModal').addEventListener('click', function() {
+                hideModal('categoryModal');
+            });
+            
+            document.getElementById('cancelCategory').addEventListener('click', function() {
+                hideModal('categoryModal');
+            });
+            
+            document.getElementById('categoryModalOverlay').addEventListener('click', function() {
+                hideModal('categoryModal');
+            });
+            
+            // AI Response Modal
+            document.getElementById('aiAssistButton').addEventListener('click', function() {
+                showModal('aiResponseModal');
+                
+                document.getElementById('aiResponsePreview').innerHTML = `
+                    <div class="flex justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    </div>
+                    <p class="text-center mt-2 text-gray-600">Generating response...</p>
+                `;
+                
+                // Simulate API call
+                setTimeout(function() {
+                    fetch('/generate-response', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email_id: document.getElementById('responseEmailId').value
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('aiResponsePreview').textContent = data.response;
+                        } else {
+                            document.getElementById('aiResponsePreview').innerHTML = `
+                                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                                    <div class="flex">
+                                        <i class="bi bi-exclamation-triangle text-red-500 flex-shrink-0 mr-3 text-lg"></i>
+                                        <p class="text-red-700">Failed to generate response: ${data.error || 'Unknown error'}</p>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById('aiResponsePreview').innerHTML = `
+                            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                                <div class="flex">
+                                    <i class="bi bi-exclamation-triangle text-red-500 flex-shrink-0 mr-3 text-lg"></i>
+                                    <p class="text-red-700">Error: ${error}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }, 1500);
+            });
+            
+            document.getElementById('closeAiResponseModal').addEventListener('click', function() {
+                hideModal('aiResponseModal');
+            });
+            
+            document.getElementById('aiResponseModalOverlay').addEventListener('click', function() {
+                hideModal('aiResponseModal');
+            });
+            
+            // Copy AI response
+            document.getElementById('copyAiResponse').addEventListener('click', function() {
+                const responseText = document.getElementById('aiResponsePreview').textContent;
+                navigator.clipboard.writeText(responseText)
+                    .then(() => {
+                        alert('Response copied to clipboard!');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+            });
+            
+            // Use AI response
+            document.getElementById('useAiResponse').addEventListener('click', function() {
+                const responseText = document.getElementById('aiResponsePreview').textContent;
+                document.getElementById('responseText').value = responseText;
+                
+                hideModal('aiResponseModal');
+                showModal('responseModal');
+            });
+            
+            // Form submissions
+            document.getElementById('submitResponse').addEventListener('click', function() {
+                const emailId = document.getElementById('responseEmailId').value;
+                const response = document.getElementById('responseText').value;
+                const sendCopy = document.getElementById('sendCopy').checked;
+                
+                if (!response.trim()) {
+                    alert('Please enter a response message.');
+                    return;
+                }
+                
+                fetch('/manual-response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email_id: emailId,
+                        response: response,
+                        send_copy: sendCopy
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Response sent successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to send response: ' + error);
+                });
+            });
+            
+            document.getElementById('submitStatus').addEventListener('click', function() {
+                const emailId = document.getElementById('statusEmailId').value;
+                const newStatus = document.getElementById('newStatus').value;
+                
+                fetch('/change-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email_id: emailId,
+                        status: newStatus
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Status updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update status: ' + error);
+                });
+            });
+            
+            document.getElementById('submitCategory').addEventListener('click', function() {
+                const emailId = document.getElementById('categoryEmailId').value;
+                const newCategory = document.getElementById('newCategory').value;
+                
+                fetch('/reassign-category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email_id: emailId,
+                        category: newCategory
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Category updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update category: ' + error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
