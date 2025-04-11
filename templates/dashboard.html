@@ -50,7 +50,16 @@
                         </a>
                     </div>
                 </div>
-                <div class="flex items-center">
+                <div class="flex items-center space-x-4">
+                    <!-- Email Polling Toggle Switch -->
+                    <div class="flex items-center mr-4">
+                        <span class="text-gray-300 text-sm mr-2">Email Polling</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="pollingToggle" class="sr-only peer" {% if polling_active %}checked{% endif %}>
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                        </label>
+                    </div>
+                    
                     <div class="relative">
                         <button class="flex items-center text-gray-300 hover:text-white focus:outline-none" id="userMenuButton">
                             <img class="rounded-full h-8 w-8 mr-2" src="https://ui-avatars.com/api/?name=Admin+User&background=6D28D9&color=fff" alt="User">
@@ -354,6 +363,47 @@
                     }
                 }
             });
+        });
+
+        // Email polling toggle functionality
+        document.getElementById('pollingToggle').addEventListener('change', function() {
+            const isActive = this.checked;
+            
+            // Send toggle state to server
+            fetch('/toggle-polling', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ active: isActive })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show notification
+                    const message = isActive ? 'Email polling started' : 'Email polling stopped';
+                    const color = isActive ? 'green' : 'gray';
+                    
+                    // Create a notification element
+                    const notification = document.createElement('div');
+                    notification.className = `fixed top-4 right-4 bg-${color}-100 border-l-4 border-${color}-500 text-${color}-700 p-4 rounded shadow-md z-50`;
+                    notification.innerHTML = `
+                        <div class="flex">
+                            <div class="py-1"><i class="bi bi-${isActive ? 'check-circle' : 'x-circle'} text-${color}-500 mr-3"></i></div>
+                            <div>
+                                <p>${message}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add to document and remove after 3 seconds
+                    document.body.appendChild(notification);
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </body>
