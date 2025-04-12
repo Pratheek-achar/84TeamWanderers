@@ -27,6 +27,9 @@ The Smart Email Management System is an AI-powered solution designed to automate
 - **HTML/CSS**: For the web interface
 - **Tailwind and Bootstrap**: For User Interface components and styling
 
+## Architecture Flow Diagram
+![Flow-diagram](./flowchart-diagram.png)
+
 ## Setup Instructions
 
 ### Prerequisites
